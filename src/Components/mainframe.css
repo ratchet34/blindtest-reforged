@@ -1,0 +1,16 @@
+#mainframe {
+  height: 100%;
+  width: 100%;
+}
+
+#buzzer-container {
+  position: absolute;
+  bottom: 0;
+  width: 80%;
+  height: 20%;
+  margin-left: 10%;
+  margin-right: 10%;
+  display: flex;
+  gap: 5%;
+  justify-content: center;
+}
