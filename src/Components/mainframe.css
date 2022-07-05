@@ -1,15 +1,20 @@
 #mainframe {
   height: 100%;
-  width: 100%;
+  width: 90%;
+  max-width: 100em;
+  background-color: aliceblue;
+  margin: auto;
+  padding-top: 1em;
 }
 
 #buzzer-container {
   position: absolute;
   bottom: 0;
+  left: 10%;
   width: 80%;
   height: 20%;
-  margin-left: 10%;
-  margin-right: 10%;
+  max-height: 8em;
+  padding-bottom: 1em;
   display: flex;
   gap: 5%;
   justify-content: center;

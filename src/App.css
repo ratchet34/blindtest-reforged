@@ -1,0 +1,7 @@
+@import url('https://cdn.jsdelivr.net/npm/semantic-ui@2/dist/semantic.min.css');
+
+.App {
+  height: 100%;
+  /*background-color:rgb(61, 61, 61);*/
+  background-color: aliceblue;
+}
