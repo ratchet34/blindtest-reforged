@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { v4 as uuid } from 'uuid';
+import { getVideoInfo } from 'youtube-video-exists';
 import Buzzer from './Buzzer';
 import './mainframe.css';
 import Viewer from './Viewer';
@@ -11,7 +12,9 @@ function Mainframe() {
   const [doneItems, setDoneItems] = useState([]);
   const [currItem, setCurrItem] = useState(null);
   const [nextItem, setNextItem] = useState(null);
-  const { sendMessage, lastMessage, readyState } = useWebSocket('ws://localhost:6969');
+  const { sendMessage, lastMessage, readyState } = useWebSocket('ws://localhost:6969', {
+    shouldReconnect: () => true,
+  });
 
   const isOneBuzzed = (b) => b.some((buzzer) => buzzer.status === 'buzzed');
   const whichOneBuzzed = (b) => b.find((buzzer) => buzzer.status === 'buzzed');
@@ -49,20 +52,29 @@ function Mainframe() {
     updateStatus(whichOneBuzzed(buzzers).id, correct === true ? 'idle' : 'error');
   };
 
-  const getFirstItem = () => {
+  const getNotDoneItem = async () => {
     let newItem;
+    let check;
     do {
       newItem = Math.floor(Math.random() * data.length);
-    } while (doneItems.includes(newItem));
+      // eslint-disable-next-line no-await-in-loop
+      check = await getVideoInfo(data[newItem].id);
+      console.log({ check, doneItems });
+    } while (doneItems.includes(newItem)
+      || check.existing === false
+      || check.validId === false
+      || check.private === true);
+    return newItem;
+  };
+
+  const getFirstItem = async () => {
+    const newItem = await getNotDoneItem();
     setCurrItem(newItem);
     setDoneItems([...doneItems, newItem]);
   };
 
-  const getNewItem = () => {
-    let newItem;
-    do {
-      newItem = Math.floor(Math.random() * data.length);
-    } while (doneItems.includes(newItem));
+  const getNewItem = async () => {
+    const newItem = await getNotDoneItem();
     if (nextItem !== null) setCurrItem(nextItem);
     setNextItem(newItem);
     setDoneItems([...doneItems, newItem]);
@@ -83,7 +95,9 @@ function Mainframe() {
   }, [lastMessage]);
 
   useEffect(() => {
+    console.log(readyState);
     if (readyState === ReadyState.OPEN) sendMessage(JSON.stringify({ type: 'identification', id: '0' }));
+    if (readyState === ReadyState.CLOSED) sendMessage(JSON.stringify({ type: 'identification', id: '0' }));
   }, [readyState]);
 
   useEffect(() => {

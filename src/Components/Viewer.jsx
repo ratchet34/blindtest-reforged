@@ -28,37 +28,8 @@ function Viewer({
     console.log('on ready');
     setPlayer(event.target);
     event.target.seekTo(from, true);
-    // event.target.playVideo();
     setPlaying(true);
   };
-
-  /* const onStateChange = (event) => {
-    console.log(event.data);
-    switch (event.data) {
-      case -1:
-        event.target.seekTo(from, true);
-        event.target.playVideo();
-        setPlaying(true);
-        break;
-      /* case 1:
-        break;
-      case 2:
-        setPlaying(false);
-        break;
-      case 3:
-        event.target.seekTo(from, true);
-        event.target.playVideo();
-        setPlaying(true);
-        break;
-      case 5:
-        event.target.seekTo(from, true);
-        event.target.playVideo();
-        setPlaying(true);
-        break;
-      default:
-        break;
-    }
-  }; */
 
   const handlePauseClick = () => {
     player.pauseVideo();
