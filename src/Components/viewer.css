@@ -21,6 +21,11 @@
   height: 100%;
 }
 
+.viewer > .inner-screen > .progress-bar {
+  position: relative;
+  top: 35%;
+}
+
 .viewer > .btn-panel {
   position: absolute;
   background-color: white;

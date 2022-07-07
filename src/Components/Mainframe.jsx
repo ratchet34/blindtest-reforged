@@ -36,7 +36,7 @@ function Mainframe() {
     if (status === 'buzzed' && isOneBuzzed(buzzers)) return;
     if (status === 'buzzed' && findMyBuzzer(buzzers, id)?.status === 'error') return;
     const newBuzzers = [...buzzers];
-    newBuzzers.filter((b) => b.id !== id).forEach((buzz, i) => { newBuzzers[i].status = 'idle'; });
+    newBuzzers.forEach((buzz, i) => { if (buzz.id !== id) newBuzzers[i].status = 'idle'; });
     newBuzzers.find((buzz) => buzz.id === id).status = status;
     setBuzzers(newBuzzers);
   };
@@ -53,10 +53,13 @@ function Mainframe() {
   };
 
   const getNotDoneItem = async () => {
+    const notDoneItems = data.filter((d, idx) => !doneItems.includes(idx));
     let newItem;
     let check;
     do {
-      newItem = Math.floor(Math.random() * data.length);
+      newItem = data.map((d) => d.id)
+        .indexOf(notDoneItems[Math.floor(Math.random() * notDoneItems.length)].id);
+      console.log(newItem);
       // eslint-disable-next-line no-await-in-loop
       check = await getVideoInfo(data[newItem].id);
       console.log({ check, doneItems });
@@ -86,7 +89,6 @@ function Mainframe() {
   };
 
   useEffect(() => {
-    console.log(lastMessage);
     if (lastMessage !== null) {
       const pMess = JSON.parse(lastMessage.data);
       if (!pMess?.id || !pMess?.status) return;
@@ -95,7 +97,6 @@ function Mainframe() {
   }, [lastMessage]);
 
   useEffect(() => {
-    console.log(readyState);
     if (readyState === ReadyState.OPEN) sendMessage(JSON.stringify({ type: 'identification', id: '0' }));
   }, [readyState]);
 
@@ -111,6 +112,7 @@ function Mainframe() {
       <Viewer
         youtubeId={data?.[currItem]?.id}
         from={data?.[currItem]?.from}
+        time={data?.[currItem]?.time}
         buzzed={isOneBuzzed(buzzers)}
         onValidate={onValidate}
         onNext={onNext}

@@ -2,16 +2,23 @@ import React, { useEffect, useState } from 'react';
 import YouTube from 'react-youtube';
 import PropTypes from 'prop-types';
 import './viewer.css';
-import { Button, Grid } from 'semantic-ui-react';
+import {
+  Button, Grid, Header, Progress,
+} from 'semantic-ui-react';
+import cestnon from '../sounds/qpuc-cestnon.mp3';
 
 function Viewer({
-  youtubeId, from, buzzed, onValidate, onNext,
+  youtubeId, from, buzzed, onValidate, onNext, time,
 }) {
   const [player, setPlayer] = useState();
   const [show, setShow] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [testId, setTestId] = useState('');
   const [refresh, setRefresh] = useState(true);
+  const [currTime, setCurrTime] = useState(0);
+  const [tick, setTick] = useState(0);
+
+  const cestnonSound = new Audio(cestnon);
 
   const opts = {
     height: '100%',
@@ -41,6 +48,8 @@ function Viewer({
     setPlaying(true);
   };
 
+  cestnonSound.onended = handlePlayClick;
+
   const handleRevealClick = () => setShow(!show);
 
   const handleCorrectValidateClick = () => {
@@ -49,7 +58,7 @@ function Viewer({
     setShow(true);
   };
   const handleWrongValidateClick = () => {
-    handlePlayClick();
+    cestnonSound.play();
     onValidate(false);
   };
 
@@ -69,11 +78,34 @@ function Viewer({
     console.log(youtubeId);
     setTestId(youtubeId);
     setRefresh(false);
+    setCurrTime(time);
+    console.log(time);
   }, [youtubeId]);
 
   useEffect(() => {
     if (refresh === false) setRefresh(true);
   }, [refresh]);
+
+  useEffect(() => {
+    console.log(currTime);
+  }, [currTime]);
+
+  useEffect(() => {
+    if (playing === false) return;
+    /* if (currTime === 1) {
+      // setShow(true);
+      return;
+    } */
+    if (currTime <= 0) return;
+    setCurrTime((prevTime) => prevTime - 1);
+  }, [tick]);
+
+  useEffect(() => {
+    const inter = setInterval(() => {
+      setTick(Math.random());
+    }, 1000);
+    return () => clearInterval(inter);
+  }, []);
 
   return (
     <div className="viewer">
@@ -88,6 +120,12 @@ function Viewer({
           /* onStateChange={onStateChange} */
           style={{ display: show === true ? 'block' : 'none' }}
         />
+        )}
+        {show === false && (
+        <div className="progress-bar">
+          <Header as="h1" style={{ color: 'white', textAlign: 'center' }}>{currTime}</Header>
+          <Progress percent={Math.floor(100 * (currTime / time))} indicating />
+        </div>
         )}
       </div>
       <div className="btn-panel">
@@ -113,6 +151,7 @@ function Viewer({
 Viewer.propTypes = {
   youtubeId: PropTypes.string,
   from: PropTypes.number,
+  time: PropTypes.number,
   buzzed: PropTypes.bool,
   onValidate: PropTypes.func,
   onNext: PropTypes.func.isRequired,
@@ -121,6 +160,7 @@ Viewer.propTypes = {
 Viewer.defaultProps = {
   youtubeId: '-50NdPawLVY',
   from: 0,
+  time: 30,
   buzzed: false,
   onValidate: () => {},
 };
