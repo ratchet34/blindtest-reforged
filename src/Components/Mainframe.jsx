@@ -97,7 +97,6 @@ function Mainframe() {
   useEffect(() => {
     console.log(readyState);
     if (readyState === ReadyState.OPEN) sendMessage(JSON.stringify({ type: 'identification', id: '0' }));
-    if (readyState === ReadyState.CLOSED) sendMessage(JSON.stringify({ type: 'identification', id: '0' }));
   }, [readyState]);
 
   useEffect(() => {
