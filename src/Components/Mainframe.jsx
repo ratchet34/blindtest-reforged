@@ -12,7 +12,8 @@ function Mainframe() {
   const [doneItems, setDoneItems] = useState([]);
   const [currItem, setCurrItem] = useState(null);
   const [nextItem, setNextItem] = useState(null);
-  const { sendMessage, lastMessage, readyState } = useWebSocket('ws://localhost:6969', {
+  const websocketServerUrl = process.env.REACT_APP_WEBSOCKET_SERVER_ADDRESS ? process.env.REACT_APP_WEBSOCKET_SERVER_ADDRESS : 'ws://localhost:6969';
+  const { sendMessage, lastMessage, readyState } = useWebSocket(websocketServerUrl, {
     shouldReconnect: () => true,
   });
 
