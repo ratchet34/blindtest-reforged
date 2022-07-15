@@ -37,3 +37,14 @@
     inset 20px 20px 30px 15px rgb(255, 136, 136),
     inset -20px -20px 30px 15px rgb(255, 136, 136);
 }
+
+.buzzer > .score-btns {
+  display: flex;
+  justify-content: space-between;
+  width: 60%;
+  margin: auto;
+}
+
+.buzzer > .score-btns > .button {
+  margin: 0 0 0 0;
+}

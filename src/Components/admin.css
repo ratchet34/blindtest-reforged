@@ -1,0 +1,17 @@
+.admin-panel {
+  display: flex;
+  flex-direction: column;
+  max-width: 20em;
+  width: 80%;
+  margin: auto;
+  gap: 0.2em;
+  padding-top: 1em;
+}
+
+.admin-panel > .label {
+  margin: 0 0 0 0;
+}
+
+.admin-panel > .label > .detail {
+  float: right;
+}

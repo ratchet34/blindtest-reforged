@@ -3,22 +3,24 @@ import YouTube from 'react-youtube';
 import PropTypes from 'prop-types';
 import './viewer.css';
 import {
-  Button, Grid, Header, Progress,
+  Button, Grid, Header, Label, Progress,
 } from 'semantic-ui-react';
 import cestnon from '../sounds/qpuc-cestnon.mp3';
+import cestoui from '../sounds/kk-oui-oui-oui-oui-oui.mp3';
 
 function Viewer({
-  youtubeId, from, buzzed, onValidate, onNext, time,
+  youtubeId, from, buzzed, onValidate, onNext, time, scores, resetAll,
 }) {
   const [player, setPlayer] = useState();
   const [show, setShow] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const [testId, setTestId] = useState('');
+  const [tempId, setTempId] = useState('');
   const [refresh, setRefresh] = useState(true);
   const [currTime, setCurrTime] = useState(0);
   const [tick, setTick] = useState(0);
 
   const cestnonSound = new Audio(cestnon);
+  const cestouiSound = new Audio(cestoui);
 
   const opts = {
     height: '100%',
@@ -30,6 +32,14 @@ function Viewer({
       showinfo: 0,
     },
   };
+
+  const colors = [
+    'green',
+    'olive',
+    'yellow',
+    'orange',
+    'red',
+  ];
 
   const onReady = (event) => {
     console.log('on ready');
@@ -49,11 +59,12 @@ function Viewer({
   };
 
   cestnonSound.onended = handlePlayClick;
+  cestouiSound.onended = handlePlayClick;
 
   const handleRevealClick = () => setShow(!show);
 
   const handleCorrectValidateClick = () => {
-    handlePlayClick();
+    cestouiSound.play();
     onValidate(true);
     setShow(true);
   };
@@ -75,20 +86,15 @@ function Viewer({
   }, [buzzed]);
 
   useEffect(() => {
-    console.log(youtubeId);
-    setTestId(youtubeId);
+    setShow(false);
+    setTempId(youtubeId);
     setRefresh(false);
     setCurrTime(time);
-    console.log(time);
   }, [youtubeId]);
 
   useEffect(() => {
     if (refresh === false) setRefresh(true);
   }, [refresh]);
-
-  useEffect(() => {
-    console.log(currTime);
-  }, [currTime]);
 
   useEffect(() => {
     if (playing === false) return;
@@ -112,9 +118,9 @@ function Viewer({
       <div className="inner-screen">
         {refresh === true && (
         <YouTube
-          className={`ytb-player ${testId}`}
-          id={testId}
-          videoId={testId}
+          className={`ytb-player ${tempId}`}
+          id={tempId}
+          videoId={tempId}
           opts={opts}
           onReady={onReady}
           /* onStateChange={onStateChange} */
@@ -144,6 +150,17 @@ function Viewer({
           </Grid.Row>
         </Grid>
       </div>
+      {scores && scores.length > 0 && (
+      <div className="scores-panel">
+        {scores.sort((a, b) => b.score - a.score).map((score, idx) => (
+          <Label color={colors[idx < 4 ? idx : 4]}>
+            {score.name.toString()}
+            <Label.Detail>{score.score.toString()}</Label.Detail>
+          </Label>
+        ))}
+      </div>
+      )}
+      <Button className="reset-btn" content="Reset" onClick={resetAll} />
     </div>
   );
 }
@@ -155,6 +172,8 @@ Viewer.propTypes = {
   buzzed: PropTypes.bool,
   onValidate: PropTypes.func,
   onNext: PropTypes.func.isRequired,
+  resetAll: PropTypes.func.isRequired,
+  scores: PropTypes.arrayOf(PropTypes.shape),
 };
 
 Viewer.defaultProps = {
@@ -163,6 +182,7 @@ Viewer.defaultProps = {
   time: 30,
   buzzed: false,
   onValidate: () => {},
+  scores: [],
 };
 
 export default Viewer;

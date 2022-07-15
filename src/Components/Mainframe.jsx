@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
+import PropTypes from 'prop-types';
 import { v4 as uuid } from 'uuid';
 import { getVideoInfo } from 'youtube-video-exists';
 import Buzzer from './Buzzer';
@@ -7,15 +8,19 @@ import './mainframe.css';
 import Viewer from './Viewer';
 import data from '../results.json';
 
-function Mainframe() {
+function Mainframe({ websocketServerUrl }) {
   const [buzzers, setBuzzers] = useState([]);
   const [doneItems, setDoneItems] = useState([]);
   const [currItem, setCurrItem] = useState(null);
   const [nextItem, setNextItem] = useState(null);
-  const websocketServerUrl = process.env.REACT_APP_WEBSOCKET_SERVER_ADDRESS ? process.env.REACT_APP_WEBSOCKET_SERVER_ADDRESS : 'ws://localhost:6969';
+  const [names, setNames] = useState([]);
+  const [scores, setScores] = useState([]);
+
   const { sendMessage, lastMessage, readyState } = useWebSocket(websocketServerUrl, {
     shouldReconnect: () => true,
   });
+
+  const viewerRef = useRef(null);
 
   const isOneBuzzed = (b) => b.some((buzzer) => buzzer.status === 'buzzed');
   const whichOneBuzzed = (b) => b.find((buzzer) => buzzer.status === 'buzzed');
@@ -25,6 +30,25 @@ function Mainframe() {
   const addNewBuzzer = (id) => {
     if (buzzers.some((b) => b.id === id)) return;
     setBuzzers((ps) => [...ps, { id, status: 'idle' }]);
+  };
+
+  const getNamesFromLocalStorage = () => {
+    const localNames = window.localStorage.getItem('ubt-buzzer-names');
+    setNames(JSON.parse(localNames));
+  };
+
+  const getScoresFromLocalStorage = () => {
+    const localScores = window.localStorage.getItem('ubt-buzzer-scores');
+    setScores(JSON.parse(localScores));
+  };
+
+  const setBuzzerName = (id, name) => {
+    setNames((ps) => [...ps?.filter((b) => b.id !== id) ?? [], { id, name }]);
+  };
+
+  const changeBuzzerScore = (id, val) => {
+    setScores((ps) => [...ps?.filter((b) => b.id !== id) ?? [],
+      { id, score: (ps.find((b) => b.id === id)?.score ?? 0) + val }]);
   };
 
   const updateStatus = (id, status) => {
@@ -63,7 +87,7 @@ function Mainframe() {
       check = await getVideoInfo(data[newItem].id);
       console.log({ check, doneItems });
     } while (doneItems.includes(newItem)
-      || check.existing === false
+    || check.existing === false
       || check.validId === false
       || check.private === true);
     return newItem;
@@ -73,6 +97,13 @@ function Mainframe() {
     const newItem = await getNotDoneItem();
     setCurrItem(newItem);
     setDoneItems([...doneItems, newItem]);
+  };
+
+  const resetAll = () => {
+    setDoneItems([]);
+    setScores([]);
+    setCurrItem(null);
+    getFirstItem();
   };
 
   const getNewItem = async () => {
@@ -102,8 +133,24 @@ function Mainframe() {
   }, [readyState]);
 
   useEffect(() => {
+    if ((names?.length ?? 0) === 0) return;
+    window.localStorage.setItem('ubt-buzzer-names', JSON.stringify(names));
+  }, [JSON.stringify(names)]);
+
+  useEffect(() => {
+    if ((scores?.length ?? 0) === 0) return;
+    window.localStorage.setItem('ubt-buzzer-scores', JSON.stringify(scores));
+  }, [JSON.stringify(scores)]);
+
+  useEffect(() => {
+    sendMessage(JSON.stringify({ type: 'item-to-admin', data: data?.[currItem] }));
+  }, [currItem]);
+
+  useEffect(() => {
     getFirstItem();
     getNewItem();
+    getNamesFromLocalStorage();
+    getScoresFromLocalStorage();
   }, []);
 
   return (
@@ -118,12 +165,33 @@ function Mainframe() {
         onValidate={onValidate}
         onNext={onNext}
         playerList={getPlayerList}
+        scores={scores?.map((s) => ({
+          id: s.id,
+          score: s.score,
+          name: names?.find((n) => n.id === s.id)?.name ?? s.id,
+        }))}
+        resetAll={resetAll}
+        ref={viewerRef}
       />
       <div id="buzzer-container">
-        {buzzers.map((b) => <Buzzer key={uuid()} id={b.id} status={b.status} />)}
+        {buzzers.map((b) => (
+          <Buzzer
+            key={uuid()}
+            id={b.id}
+            status={b.status}
+            name={names?.find((n) => n.id === b.id)?.name ?? b.id}
+            score={scores?.find((s) => s.id === b.id)?.score ?? 0}
+            handleChangeName={setBuzzerName}
+            handleChangeScore={changeBuzzerScore}
+          />
+        ))}
       </div>
     </div>
   );
 }
+
+Mainframe.propTypes = {
+  websocketServerUrl: PropTypes.string.isRequired,
+};
 
 export default Mainframe;

@@ -58,3 +58,31 @@
   border-radius: 0;
   padding: 0;
 }
+
+.viewer > .scores-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  position: absolute;
+  width: 12.4%;
+  right: 2%;
+  height: 55%;
+  top: 31.8%;
+  overflow: auto;
+}
+
+.viewer > .scores-panel > .label {
+  border-radius: 1em;
+}
+
+.viewer > .scores-panel > .label > .detail {
+  float: right;
+}
+
+.viewer > .reset-btn {
+  position: absolute;
+  width: 12.4%;
+  right: 2%;
+  top: 90%;
+  overflow: auto;
+}
