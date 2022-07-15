@@ -23,9 +23,7 @@ function Mainframe() {
 
   const addNewBuzzer = (id) => {
     if (buzzers.some((b) => b.id === id)) return;
-    const newBuzzers = [...buzzers];
-    newBuzzers.push({ id, status: 'idle' });
-    setBuzzers(newBuzzers);
+    setBuzzers((ps) => [...ps, { id, status: 'idle' }]);
   };
 
   const updateStatus = (id, status) => {
@@ -88,6 +86,8 @@ function Mainframe() {
     getNewItem();
   };
 
+  const getPlayerList = () => buzzers.map((b) => b.id);
+
   useEffect(() => {
     if (lastMessage !== null) {
       const pMess = JSON.parse(lastMessage.data);
@@ -116,6 +116,7 @@ function Mainframe() {
         buzzed={isOneBuzzed(buzzers)}
         onValidate={onValidate}
         onNext={onNext}
+        playerList={getPlayerList}
       />
       <div id="buzzer-container">
         {buzzers.map((b) => <Buzzer key={uuid()} id={b.id} status={b.status} />)}
