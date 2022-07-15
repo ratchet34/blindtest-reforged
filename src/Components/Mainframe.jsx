@@ -155,8 +155,12 @@ function Mainframe({ websocketServerUrl }) {
 
   return (
     <div id="mainframe">
-      <button type="button" onClick={() => updateStatus(buzzers[0].id, 'buzzed')}>buzz 1</button>
-      <button type="button" onClick={() => updateStatus(buzzers[1].id, 'buzzed')}>buzz 2</button>
+      {process.env.NODE_ENV !== 'production' && (
+      <div>
+        <button type="button" onClick={() => updateStatus(buzzers[0].id, 'buzzed')}>buzz 1</button>
+        <button type="button" onClick={() => updateStatus(buzzers[1].id, 'buzzed')}>buzz 2</button>
+      </div>
+      )}
       <Viewer
         youtubeId={data?.[currItem]?.id}
         from={data?.[currItem]?.from}
