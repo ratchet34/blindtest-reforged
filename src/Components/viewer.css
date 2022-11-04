@@ -86,3 +86,26 @@
   top: 90%;
   overflow: auto;
 }
+
+.viewer > .teams-btn {
+  position: absolute;
+  width: 12.4%;
+  right: 2%;
+  top: 84%;
+  overflow: auto;
+}
+
+.flex-lists {
+  margin-top: 1em;
+  display: flex;
+  gap: 1em;
+  justify-content: space-evenly;
+}
+
+.flex-lists > .ui.list {
+  margin: 0;
+}
+
+.ui.label > .close.icon {
+  margin-left: 0;
+}

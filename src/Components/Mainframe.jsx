@@ -120,6 +120,12 @@ function Mainframe({ websocketServerUrl }) {
 
   const getPlayerList = () => buzzers.map((b) => b.id);
 
+  const getDoneItems = () => {
+    const lsDone = localStorage.getItem('ubt-done-items');
+    if (lsDone === null) return;
+    setDoneItems(JSON.parse(lsDone));
+  };
+
   useEffect(() => {
     if (lastMessage !== null) {
       const pMess = JSON.parse(lastMessage.data);
@@ -143,10 +149,16 @@ function Mainframe({ websocketServerUrl }) {
   }, [JSON.stringify(scores)]);
 
   useEffect(() => {
+    if ((doneItems?.length ?? 0) === 0) return;
+    window.localStorage.setItem('ubt-done-items', JSON.stringify(doneItems));
+  }, [JSON.stringify(doneItems)]);
+
+  useEffect(() => {
     sendMessage(JSON.stringify({ type: 'item-to-admin', data: data?.[currItem] }));
   }, [currItem]);
 
   useEffect(() => {
+    getDoneItems();
     getFirstItem();
     getNewItem();
     getNamesFromLocalStorage();

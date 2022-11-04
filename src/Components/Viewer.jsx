@@ -3,7 +3,7 @@ import YouTube from 'react-youtube';
 import PropTypes from 'prop-types';
 import './viewer.css';
 import {
-  Button, Grid, Header, Label, Progress,
+  Button, Form, Grid, Header, Icon, Label, List, Modal, Progress,
 } from 'semantic-ui-react';
 import cestnon from '../sounds/qpuc-cestnon.mp3';
 import cestoui from '../sounds/kk-oui-oui-oui-oui-oui.mp3';
@@ -18,6 +18,11 @@ function Viewer({
   const [refresh, setRefresh] = useState(true);
   const [currTime, setCurrTime] = useState(0);
   const [tick, setTick] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [teamCount, setTeamCount] = useState(2);
+  const [playerName, setPlayerName] = useState('');
+  const [playerList, setPlayerList] = useState([]);
+  const [teams, setTeams] = useState([]);
 
   const cestnonSound = new Audio(cestnon);
   const cestouiSound = new Audio(cestoui);
@@ -78,6 +83,34 @@ function Viewer({
     setShow(false);
   };
 
+  const onlyUnique = (v, i, s) => s.indexOf(v) === i;
+
+  const addPlayerToList = () => {
+    if (!playerName || playerName === null || playerName === '') return;
+    setPlayerList((prev) => [...prev, playerName].filter(onlyUnique));
+    setPlayerName('');
+  };
+
+  const removePlayerFromList = (pl) => {
+    setPlayerList((prev) => prev.filter((str) => str !== pl));
+  };
+
+  const rerollTeams = () => {
+    const t = Array.from(Array(Number.parseInt(teamCount, 10))).map(() => []);
+    console.log(t);
+    const pl = [...playerList];
+    for (let i = 0; i < playerList.length; i += 1) {
+      const randomPlayer = Math.floor(Math.random() * pl.length);
+      const pName = pl[randomPlayer];
+      pl.splice(randomPlayer, 1);
+      const teamNumber = i % teamCount;
+      console.log(teamCount);
+      console.log(teamNumber);
+      t[teamNumber] = [...t[teamNumber], pName];
+    }
+    setTeams(t);
+  };
+
   useEffect(() => {
     if (buzzed === true) {
       player.pauseVideo();
@@ -95,6 +128,10 @@ function Viewer({
   useEffect(() => {
     if (refresh === false) setRefresh(true);
   }, [refresh]);
+
+  useEffect(() => {
+    setTeams([]);
+  }, [teamCount]);
 
   useEffect(() => {
     if (playing === false) return;
@@ -160,7 +197,62 @@ function Viewer({
         ))}
       </div>
       )}
+      <Button className="teams-btn" content="Team builder" onClick={() => setOpen(true)} />
       <Button className="reset-btn" content="Reset" onClick={resetAll} />
+      <Modal
+        onClose={() => setOpen(false)}
+        onOpen={() => setOpen(true)}
+        open={open}
+      >
+        <Modal.Header>Team builder</Modal.Header>
+        <Modal.Content>
+          <Form>
+            <Form.Group>
+              <Form.Input placeholder="Number of teams..." value={teamCount} onChange={(e, { value }) => setTeamCount(value)} />
+              <Form.Input placeholder="Player name..." value={playerName} onChange={(e, { value }) => setPlayerName(value)} />
+              <Form.Button disabled={playerList.includes(playerName)} icon onClick={addPlayerToList}><Icon name="plus" /></Form.Button>
+            </Form.Group>
+          </Form>
+          <div>
+            {playerList.length > 0 && playerList.map((pl) => (
+              <Label>
+                <Icon name="close" onClick={() => removePlayerFromList(pl)} />
+                {' '}
+                {pl}
+              </Label>
+            ))}
+          </div>
+          <div className="flex-lists">
+            {teams.map((t, i) => (
+              <div>
+                Team
+                {' '}
+                {i + 1}
+                <List>
+                  {t.map((pl) => (
+                    <List.Item>
+                      <List.Icon name="user" />
+                      <List.Content>{pl}</List.Content>
+                    </List.Item>
+                  ))}
+                </List>
+              </div>
+            ))}
+          </div>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button color="black" onClick={rerollTeams}>
+            Reroll
+          </Button>
+          <Button
+            content="Ok"
+            labelPosition="right"
+            icon="checkmark"
+            onClick={() => setOpen(false)}
+            positive
+          />
+        </Modal.Actions>
+      </Modal>
     </div>
   );
 }
