@@ -48,7 +48,7 @@ function Mainframe({ websocketServerUrl }) {
 
   const changeBuzzerScore = (id, val) => {
     setScores((ps) => [...ps?.filter((b) => b.id !== id) ?? [],
-      { id, score: (ps.find((b) => b.id === id)?.score ?? 0) + val }]);
+      { id, score: (ps?.find((b) => b.id === id)?.score ?? 0) + val }]);
   };
 
   const updateStatus = (id, status) => {
