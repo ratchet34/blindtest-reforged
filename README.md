@@ -29,3 +29,7 @@ The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+### Admin panel
+
+To access the admin panel navigate to where the app is served and add "mode=admin" to the query parameters i.e.: http://localhost:3000?mode=admin
