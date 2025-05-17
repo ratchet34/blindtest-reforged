@@ -6,9 +6,9 @@ import { getVideoInfo } from 'youtube-video-exists';
 import Buzzer from './Buzzer';
 import './mainframe.css';
 import Viewer from './Viewer';
-import data from '../results.json';
 
 function Mainframe({ websocketServerUrl }) {
+  const [data, setData] = useState([]);
   const [buzzers, setBuzzers] = useState([]);
   const [doneItems, setDoneItems] = useState([]);
   const [currItem, setCurrItem] = useState(null);
@@ -16,9 +16,12 @@ function Mainframe({ websocketServerUrl }) {
   const [names, setNames] = useState([]);
   const [scores, setScores] = useState([]);
 
-  const { sendMessage, lastMessage, readyState } = useWebSocket(websocketServerUrl, {
-    shouldReconnect: () => true,
-  });
+  const { sendMessage, lastMessage, readyState } = useWebSocket(
+    websocketServerUrl,
+    {
+      shouldReconnect: () => true,
+    },
+  );
 
   const viewerRef = useRef(null);
 
@@ -43,12 +46,14 @@ function Mainframe({ websocketServerUrl }) {
   };
 
   const setBuzzerName = (id, name) => {
-    setNames((ps) => [...ps?.filter((b) => b.id !== id) ?? [], { id, name }]);
+    setNames((ps) => [...(ps?.filter((b) => b.id !== id) ?? []), { id, name }]);
   };
 
   const changeBuzzerScore = (id, val) => {
-    setScores((ps) => [...ps?.filter((b) => b.id !== id) ?? [],
-      { id, score: (ps?.find((b) => b.id === id)?.score ?? 0) + val }]);
+    setScores((ps) => [
+      ...(ps?.filter((b) => b.id !== id) ?? []),
+      { id, score: (ps?.find((b) => b.id === id)?.score ?? 0) + val },
+    ]);
   };
 
   const updateStatus = (id, status) => {
@@ -59,20 +64,27 @@ function Mainframe({ websocketServerUrl }) {
     if (status === 'buzzed' && isOneBuzzed(buzzers)) return;
     if (status === 'buzzed' && findMyBuzzer(buzzers, id)?.status === 'error') return;
     const newBuzzers = [...buzzers];
-    newBuzzers.forEach((buzz, i) => { if (buzz.id !== id) newBuzzers[i].status = 'idle'; });
+    newBuzzers.forEach((buzz, i) => {
+      if (buzz.id !== id) newBuzzers[i].status = 'idle';
+    });
     newBuzzers.find((buzz) => buzz.id === id).status = status;
     setBuzzers(newBuzzers);
   };
 
   const resetBuzzers = () => {
     const newBuzzers = [...buzzers];
-    newBuzzers.forEach((buzz, i) => { newBuzzers[i].status = 'idle'; });
+    newBuzzers.forEach((buzz, i) => {
+      newBuzzers[i].status = 'idle';
+    });
     setBuzzers(newBuzzers);
   };
 
   const onValidate = (correct) => {
     if (buzzers.length === 0) return;
-    updateStatus(whichOneBuzzed(buzzers).id, correct === true ? 'idle' : 'error');
+    updateStatus(
+      whichOneBuzzed(buzzers).id,
+      correct === true ? 'idle' : 'error',
+    );
   };
 
   const getNotDoneItem = async () => {
@@ -80,16 +92,21 @@ function Mainframe({ websocketServerUrl }) {
     let newItem;
     let check;
     do {
-      newItem = data.map((d) => d.id)
-        .indexOf(notDoneItems[Math.floor(Math.random() * notDoneItems.length)].id);
+      newItem = data
+        .map((d) => d.id)
+        .indexOf(
+          notDoneItems[Math.floor(Math.random() * notDoneItems.length)].id,
+        );
       console.log(newItem);
       // eslint-disable-next-line no-await-in-loop
       check = await getVideoInfo(data[newItem].id);
       console.log({ check, doneItems });
-    } while (doneItems.includes(newItem)
-    || check.existing === false
+    } while (
+      doneItems.includes(newItem)
+      || check.existing === false
       || check.validId === false
-      || check.private === true);
+      || check.private === true
+    );
     return newItem;
   };
 
@@ -126,6 +143,16 @@ function Mainframe({ websocketServerUrl }) {
     setDoneItems(JSON.parse(lsDone));
   };
 
+  const getData = async () => {
+    const d = await fetch('/results.json')
+      .then((res) => res.json())
+      .catch((err) => {
+        console.error(err);
+        return [];
+      });
+    return d;
+  };
+
   useEffect(() => {
     if (lastMessage !== null) {
       const pMess = JSON.parse(lastMessage.data);
@@ -154,24 +181,41 @@ function Mainframe({ websocketServerUrl }) {
   }, [JSON.stringify(doneItems)]);
 
   useEffect(() => {
-    sendMessage(JSON.stringify({ type: 'item-to-admin', data: data?.[currItem] }));
+    sendMessage(
+      JSON.stringify({ type: 'item-to-admin', data: data?.[currItem] }),
+    );
   }, [currItem]);
 
   useEffect(() => {
-    getDoneItems();
-    getFirstItem();
-    getNewItem();
-    getNamesFromLocalStorage();
-    getScoresFromLocalStorage();
+    const init = async () => {
+      const d = await getData();
+      setData(d);
+      getDoneItems();
+      getFirstItem();
+      getNewItem();
+      getNamesFromLocalStorage();
+      getScoresFromLocalStorage();
+    };
+    init();
   }, []);
 
   return (
     <div id="mainframe">
       {process.env.NODE_ENV !== 'production' && (
-      <div>
-        <button type="button" onClick={() => updateStatus(buzzers[0].id, 'buzzed')}>buzz 1</button>
-        <button type="button" onClick={() => updateStatus(buzzers[1].id, 'buzzed')}>buzz 2</button>
-      </div>
+        <div>
+          <button
+            type="button"
+            onClick={() => updateStatus(buzzers[0].id, 'buzzed')}
+          >
+            buzz 1
+          </button>
+          <button
+            type="button"
+            onClick={() => updateStatus(buzzers[1].id, 'buzzed')}
+          >
+            buzz 2
+          </button>
+        </div>
       )}
       <Viewer
         youtubeId={data?.[currItem]?.id}
