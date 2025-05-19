@@ -187,14 +187,17 @@ function Mainframe({ websocketServerUrl }) {
   }, [currItem]);
 
   useEffect(() => {
+    getDoneItems();
+    getFirstItem();
+    getNewItem();
+    getNamesFromLocalStorage();
+    getScoresFromLocalStorage();
+  }, [data]);
+
+  useEffect(() => {
     const init = async () => {
       const d = await getData();
       setData(d);
-      getDoneItems();
-      getFirstItem();
-      getNewItem();
-      getNamesFromLocalStorage();
-      getScoresFromLocalStorage();
     };
     init();
   }, []);
